@@ -58,14 +58,16 @@ export default function Dashboard() {
         </nav>
       </aside>
 
-      {/* Main Content */}
+           {/* Main Content */}
       <section className="md:col-span-3 bg-white p-6 rounded-xl shadow-md border border-gray-100">
         <Routes>
           <Route index element={<Appointments />} />
           <Route path="book" element={<BookAppointment />} />
+          <Route path="book/:id" element={<BookAppointment />} />
           <Route path="profile" element={<Profile />} />
         </Routes>
       </section>
+
     </div>
   );
 }

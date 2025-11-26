@@ -4,48 +4,74 @@ import { requireAuth } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// GET MY APPOINTMENTS
+// =========================
+// GET ONLY USER ACTIVE APPOINTMENTS
+// =========================
 router.get("/my", requireAuth, async (req, res) => {
   try {
     const [rows] = await pool.query(
-      "SELECT id, dentist, reason, datetime FROM appointments WHERE user_id = ? ORDER BY datetime",
+      "SELECT id, dentist, reason, datetime FROM appointments WHERE user_id = ? AND status='booked' ORDER BY datetime ASC",
       [req.user.id]
     );
     res.json(rows);
   } catch (err) {
-    console.log(err);
     res.status(500).json({ message: "Server error" });
   }
 });
 
-// BOOK APPOINTMENT — allow unlimited bookings
+// =========================
+// BOOK NEW APPOINTMENT
+// =========================
 router.post("/", requireAuth, async (req, res) => {
   const { dentist, reason, datetime } = req.body;
 
+  if (!dentist || !reason || !datetime)
+    return res.status(400).json({ message: "Missing fields" });
+
   try {
     await pool.query(
-      "INSERT INTO appointments (user_id, dentist, reason, datetime) VALUES (?, ?, ?, ?)",
+      "INSERT INTO appointments (user_id, dentist, reason, datetime, status) VALUES (?, ?, ?, ?, 'booked')",
       [req.user.id, dentist, reason, datetime]
     );
-
-    res.json({ message: "Appointment booked successfully" });
+    res.json({ message: "Appointment Booked Successfully" });
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Server error" });
   }
 });
 
-// DELETE APPOINTMENT
+// =========================
+// RESCHEDULE APPOINTMENT
+// =========================
+router.put("/:id", requireAuth, async (req, res) => {
+  const { dentist, reason, datetime } = req.body;
+
+  if (!dentist || !reason || !datetime)
+    return res.status(400).json({ message: "Missing fields" });
+
+  try {
+    await pool.query(
+      "UPDATE appointments SET dentist=?, reason=?, datetime=?, status='booked' WHERE id=? AND user_id=?",
+      [dentist, reason, datetime, req.params.id, req.user.id]
+    );
+    res.json({ message: "Appointment Rescheduled" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// =========================
+// CANCEL (SOFT DELETE)
+// =========================
 router.delete("/:id", requireAuth, async (req, res) => {
   try {
-    await pool.query("DELETE FROM appointments WHERE id = ? AND user_id = ?", [
-      req.params.id,
-      req.user.id,
-    ]);
+    await pool.query(
+      "UPDATE appointments SET status='cancelled' WHERE id=? AND user_id=?",
+      [req.params.id, req.user.id]
+    );
 
-    res.json({ message: "Appointment cancelled" });
+    res.json({ message: "Appointment Cancelled" });
   } catch (err) {
-    console.log(err);
     res.status(500).json({ message: "Server error" });
   }
 });
