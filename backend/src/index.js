@@ -20,6 +20,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/admin", adminRoutes);
 
+
 app.get("/", (req, res) => res.json({ message: "DentalCare API running" }));
 
 const PORT = process.env.PORT || 4000;
