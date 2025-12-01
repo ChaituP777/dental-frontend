@@ -5,6 +5,7 @@ import { getUserFromToken } from "../lib/auth";
 export default function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [appointments, setAppointments] = useState([]);
+  const [appointmentFilter, setAppointmentFilter] = useState("all");
 
   const user = getUserFromToken();
 
@@ -27,6 +28,10 @@ export default function AdminDashboard() {
   const totalCancelled = appointments.filter(a => a.status === "cancelled").length;
   const today = new Date().toISOString().slice(0,10);
   const todayAppointments = appointments.filter(a => a.datetime.startsWith(today)).length;
+
+  const filteredAppointments = appointmentFilter === "all" 
+    ? appointments 
+    : appointments.filter(a => a.status === appointmentFilter);
 
   return (
     <div className="space-y-12">
@@ -76,8 +81,43 @@ export default function AdminDashboard() {
       {/* ===================== APPOINTMENTS TABLE ===================== */}
       <section className="bg-white p-5 rounded-lg shadow-lg border">
         <h2 className="text-2xl font-semibold mb-3 text-green-600">
-          All Appointments
+          {appointmentFilter === "all" && "All Appointments"}
+          {appointmentFilter === "booked" && "Booked Appointments"}
+          {appointmentFilter === "cancelled" && "Cancelled Appointments"}
         </h2>
+
+        <div className="mb-4 flex gap-3">
+          <button
+            onClick={() => setAppointmentFilter("all")}
+            className={`px-4 py-2 rounded font-semibold transition ${
+              appointmentFilter === "all"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            All
+          </button>
+          <button
+            onClick={() => setAppointmentFilter("booked")}
+            className={`px-4 py-2 rounded font-semibold transition ${
+              appointmentFilter === "booked"
+                ? "bg-green-600 text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            Booked
+          </button>
+          <button
+            onClick={() => setAppointmentFilter("cancelled")}
+            className={`px-4 py-2 rounded font-semibold transition ${
+              appointmentFilter === "cancelled"
+                ? "bg-red-600 text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            Cancelled
+          </button>
+        </div>
 
         <table className="min-w-full border rounded text-sm overflow-hidden">
           <thead className="bg-green-600 text-white">
@@ -93,7 +133,7 @@ export default function AdminDashboard() {
           </thead>
 
           <tbody>
-            {appointments.map(a => (
+            {filteredAppointments.map(a => (
               <tr key={a.id} className="hover:bg-gray-50">
                 <td className="p-2 border">{a.id}</td>
                 <td className="p-2 border font-semibold">{a.user_name}</td>
