@@ -48,7 +48,7 @@ export default function Appointments() {
 
       {appointments.length === 0 ? (
         <p className="text-gray-500 bg-white p-4 rounded shadow">
-          You have no appointments booked yet.
+          You have no appointments.
         </p>
       ) : (
         <div className="space-y-4">
@@ -65,22 +65,44 @@ export default function Appointments() {
                 <p className="text-gray-600">
                   <strong>Reason:</strong> {appt.reason}
                 </p>
+                {/* Status message */}
+                {appt.status === "pending" && (
+                  <p className="mt-2 text-yellow-600 font-medium">Pending — awaiting admin approval</p>
+                )}
+                {appt.status === "booked" && (
+                  <p className="mt-2 text-green-600 font-medium">Booked</p>
+                )}
+                {appt.status === "cancelled" && (
+                  <p className="mt-2 text-red-600 font-medium">Doctor not available — please reschedule</p>
+                )}
               </div>
 
               <div className="flex space-x-2">
-                <button
-                  onClick={() => handleReschedule(appt)}
-                  className="bg-yellow-500 text-white px-4 py-2 rounded-md shadow hover:bg-yellow-600 transition"
-                >
-                  Reschedule
-                </button>
+                {/* For cancelled appointments show only reschedule (so user can pick a new slot) */}
+                {appt.status === "cancelled" ? (
+                  <button
+                    onClick={() => handleReschedule(appt)}
+                    className="bg-yellow-500 text-white px-4 py-2 rounded-md shadow hover:bg-yellow-600 transition"
+                  >
+                    Reschedule
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => handleReschedule(appt)}
+                      className="bg-yellow-500 text-white px-4 py-2 rounded-md shadow hover:bg-yellow-600 transition"
+                    >
+                      Reschedule
+                    </button>
 
-                <button
-                  onClick={() => cancel(appt.id)}
-                  className="bg-red-500 text-white px-4 py-2 rounded-md shadow hover:bg-red-600 transition"
-                >
-                  Cancel
-                </button>
+                    <button
+                      onClick={() => cancel(appt.id)}
+                      className="bg-red-500 text-white px-4 py-2 rounded-md shadow hover:bg-red-600 transition"
+                    >
+                      Cancel
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           ))}

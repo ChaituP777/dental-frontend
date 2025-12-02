@@ -70,9 +70,8 @@ export default function BookAppointment() {
 
       navigate("/dashboard");
     } catch (err) {
-      setError(
-        isEditing ? "Failed to reschedule appointment" : "Failed to book appointment"
-      );
+      const msg = err?.response?.data?.message;
+      setError(msg || (isEditing ? "Failed to reschedule appointment" : "Failed to book appointment"));
     }
   }
 

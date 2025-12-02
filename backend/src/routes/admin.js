@@ -28,4 +28,30 @@ router.get("/appointments", requireAuth, requireAdmin, async (req, res) => {
   res.json(rows);
 });
 
+// Approve appointment (pending -> booked)
+router.put("/appointments/:id/approve", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    await pool.query(
+      "UPDATE appointments SET status='booked' WHERE id=?",
+      [req.params.id]
+    );
+    res.json({ message: "Appointment Approved" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Reject appointment (pending/booked -> cancelled)
+router.put("/appointments/:id/reject", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    await pool.query(
+      "UPDATE appointments SET status='cancelled' WHERE id=?",
+      [req.params.id]
+    );
+    res.json({ message: "Appointment Rejected" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 export default router;

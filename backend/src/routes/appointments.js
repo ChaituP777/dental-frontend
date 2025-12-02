@@ -5,12 +5,12 @@ import { requireAuth } from "../middleware/auth.js";
 const router = express.Router();
 
 // =========================
-// GET ONLY USER ACTIVE APPOINTMENTS
+// GET USER APPOINTMENTS (all statuses)
 // =========================
 router.get("/my", requireAuth, async (req, res) => {
   try {
     const [rows] = await pool.query(
-      "SELECT id, dentist, reason, datetime FROM appointments WHERE user_id = ? AND status='booked' ORDER BY datetime ASC",
+      "SELECT id, dentist, reason, datetime, status FROM appointments WHERE user_id = ? ORDER BY datetime ASC",
       [req.user.id]
     );
     res.json(rows);
@@ -30,10 +30,10 @@ router.post("/", requireAuth, async (req, res) => {
 
   try {
     await pool.query(
-      "INSERT INTO appointments (user_id, dentist, reason, datetime, status) VALUES (?, ?, ?, ?, 'booked')",
+      "INSERT INTO appointments (user_id, dentist, reason, datetime, status) VALUES (?, ?, ?, ?, 'pending')",
       [req.user.id, dentist, reason, datetime]
     );
-    res.json({ message: "Appointment Booked Successfully" });
+    res.json({ message: "Appointment Request Submitted - Pending Admin Approval" });
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Server error" });
@@ -41,7 +41,7 @@ router.post("/", requireAuth, async (req, res) => {
 });
 
 // =========================
-// RESCHEDULE APPOINTMENT
+// RESCHEDULE APPOINTMENT (mark as pending for admin approval)
 // =========================
 router.put("/:id", requireAuth, async (req, res) => {
   const { dentist, reason, datetime } = req.body;
@@ -50,11 +50,30 @@ router.put("/:id", requireAuth, async (req, res) => {
     return res.status(400).json({ message: "Missing fields" });
 
   try {
+    // fetch current appointment and validate
+    const [rows] = await pool.query(
+      "SELECT id, status, user_id FROM appointments WHERE id = ? AND user_id = ?",
+      [req.params.id, req.user.id]
+    );
+
+    if (!rows || rows.length === 0) {
+      return res.status(404).json({ message: "Appointment not found" });
+    }
+
+    const appt = rows[0];
+
+    // disallow rescheduling while already pending approval
+    if (appt.status === 'pending') {
+      return res.status(400).json({ message: "Cannot reschedule while appointment is pending approval" });
+    }
+
+    // allow reschedule from booked or cancelled — mark as pending
     await pool.query(
-      "UPDATE appointments SET dentist=?, reason=?, datetime=?, status='booked' WHERE id=? AND user_id=?",
+      "UPDATE appointments SET dentist=?, reason=?, datetime=?, status='pending' WHERE id=? AND user_id=?",
       [dentist, reason, datetime, req.params.id, req.user.id]
     );
-    res.json({ message: "Appointment Rescheduled" });
+
+    res.json({ message: "Appointment Rescheduled and set to pending approval" });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }

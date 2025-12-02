@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS appointments (
   dentist VARCHAR(200),
   reason TEXT,
   datetime DATETIME,
+  status ENUM('pending', 'booked', 'cancelled') DEFAULT 'pending',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
