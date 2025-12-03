@@ -29,10 +29,28 @@ router.post("/", requireAuth, async (req, res) => {
     return res.status(400).json({ message: "Missing fields" });
 
   try {
-    await pool.query(
+    const [result] = await pool.query(
       "INSERT INTO appointments (user_id, dentist, reason, datetime, status) VALUES (?, ?, ?, ?, 'pending')",
       [req.user.id, dentist, reason, datetime]
     );
+
+    const appointmentId = result.insertId;
+    const userName = req.user.name;
+
+    // Create admin notification about new appointment
+    // Admin user is anyone with admin@gmail.com email - we'll notify all admins later
+    // For now, store a notification with admin marker
+    await pool.query(
+      "INSERT INTO notifications (user_id, appointment_id, type, title, message, is_read) VALUES (?, ?, ?, ?, ?, FALSE)",
+      [
+        0, // 0 = admin notification (will be handled separately)
+        appointmentId,
+        "pending",
+        "📅 New Appointment Request",
+        `${userName} has requested a new appointment with ${dentist} on ${datetime}`
+      ]
+    );
+
     res.json({ message: "Appointment Request Submitted - Pending Admin Approval" });
   } catch (err) {
     console.log(err);

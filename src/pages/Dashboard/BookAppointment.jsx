@@ -75,64 +75,78 @@ export default function BookAppointment() {
     }
   }
 
-  return (
-    <div className="bg-white p-6 rounded shadow max-w-md">
-      <h2 className="text-2xl mb-4">
-        {isEditing ? "Reschedule Appointment" : "Book Appointment"}
-      </h2>
+    return (
+    <div className="flex items-center justify-center p-2 sm:p-4">
+      <div className="w-full max-w-lg bg-white p-5 sm:p-8 rounded-lg shadow-lg border border-gray-100">
+        <h2 className="text-xl sm:text-2xl font-bold mb-5 sm:mb-6 text-center text-blue-700">
+          {isEditing ? "🔄 Reschedule Appointment" : "📅 Book Appointment"}
+        </h2>
 
-      {error && (
-        <div className="mb-4 text-red-600 bg-red-50 p-2 rounded">
-          {error}
-        </div>
-      )}
+        {error && (
+          <div className="mb-4 text-red-600 bg-red-50 p-3 rounded-md border border-red-200 text-sm sm:text-base">
+            {error}
+          </div>
+        )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <select
-          className="w-full p-2 border rounded"
-          value={dentist}
-          onChange={(e) => setDentist(e.target.value)}
-          required
-        >
-          <option value="">Select Dentist</option>
-          <option value="Dr. Mehta">Dr. Mehta</option>
-          <option value="Dr. Rao">Dr. Rao</option>
-          <option value="Dr. Sharma">Dr. Sharma</option>
-        </select>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">👨‍⚕️ Select Dentist</label>
+            <select
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              value={dentist}
+              onChange={(e) => setDentist(e.target.value)}
+              required
+            >
+              <option value="">Choose a dentist</option>
+              <option value="Dr. Mehta">Dr. Mehta</option>
+              <option value="Dr. Rao">Dr. Rao</option>
+              <option value="Dr. Sharma">Dr. Sharma</option>
+            </select>
+          </div>
 
-        <div className="flex space-x-3">
-          <input
-            type="date"
-            className="flex-1 p-2 border rounded"
-            value={date}
-            min={today}
-            onChange={(e) => setDate(e.target.value)}
-            required
-          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">📅 Date</label>
+              <input
+                type="date"
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                value={date}
+                min={today}
+                onChange={(e) => setDate(e.target.value)}
+                required
+              />
+            </div>
 
-          <input
-            type="time"
-            className="flex-1 p-2 border rounded"
-            value={time}
-            min={minTime}
-            onChange={(e) => setTime(e.target.value)}
-            required
-          />
-        </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">⏰ Time</label>
+              <input
+                type="time"
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                value={time}
+                min={minTime}
+                onChange={(e) => setTime(e.target.value)}
+                required
+              />
+            </div>
+          </div>
 
-        <textarea
-          placeholder="Reason"
-          className="w-full p-2 border rounded"
-          rows="3"
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-          required
-        />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">📝 Reason for Visit</label>
+            <textarea
+              placeholder="Describe your dental concern"
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              rows="4"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              required
+            />
+          </div>
 
-        <button className="w-full bg-green-600 text-white py-2 rounded">
-          {isEditing ? "Reschedule Appointment" : "Book Appointment"}
-        </button>
-      </form>
+          <button className="w-full bg-green-600 text-white py-3 rounded-md font-semibold hover:bg-green-700 transition shadow-md text-base sm:text-lg">
+            {isEditing ? "Reschedule Appointment" : "Book Appointment"}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

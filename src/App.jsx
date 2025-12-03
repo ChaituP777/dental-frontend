@@ -7,6 +7,8 @@ import Dashboard from "./pages/Dashboard";         // User Dashboard
 import AdminDashboard from "./pages/AdminDashboard"; // Admin Dashboard
 
 import { getUserFromToken, clearToken } from "./lib/auth";
+import { NotificationProvider } from "./context/NotificationContext";
+import NotificationCenter from "./components/NotificationCenter";
 
 
 // ====================== NAVBAR ======================
@@ -35,18 +37,20 @@ function NavbarComponent() {
 
 
   return (
-    <header className="bg-white shadow">
-      <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+    <header className="bg-white shadow sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-3 flex justify-between items-center">
         
-        <Link to="/" className="text-2xl font-bold">DentalCare</Link>
+        <Link to="/" className="text-xl sm:text-2xl font-bold text-blue-600 hover:text-blue-700 transition">
+          🦷 DentalCare
+        </Link>
 
-        <nav className="space-x-3">
+        <nav className="flex items-center gap-2 sm:gap-3">
 
           {/* Not logged in */}
           {!user && (
             <>
-              <Link to="/login" className="hover:text-blue-600">Login</Link>
-              <Link to="/register" className="bg-blue-600 text-white px-3 py-1 rounded">
+              <Link to="/login" className="hover:text-blue-600 text-sm sm:text-base px-2 py-1">Login</Link>
+              <Link to="/register" className="bg-blue-600 text-white px-2 sm:px-4 py-1.5 sm:py-2 rounded text-sm sm:text-base hover:bg-blue-700 transition">
                 Register
               </Link>
             </>
@@ -57,21 +61,21 @@ function NavbarComponent() {
             <>
               {/* USER SEE THIS ONLY */}
               {user.role === "user" && (
-                <Link to="/dashboard" className="hover:text-blue-600">
+                <Link to="/dashboard" className="hover:text-blue-600 text-sm sm:text-base px-2 py-1 hidden sm:inline">
                   Dashboard
                 </Link>
               )}
 
               {/* ADMIN SEE ONLY ADMIN PANEL */}
               {user.role === "admin" && (
-                <Link to="/admin" className="text-amber-600 font-semibold hover:text-amber-700">
+                <Link to="/admin" className="text-amber-600 font-semibold hover:text-amber-700 text-sm sm:text-base px-2 py-1 hidden sm:inline">
                   Admin Panel
                 </Link>
               )}
 
               <button
                 onClick={handleLogout}
-                className="bg-red-500 text-white px-3 py-1 rounded"
+                className="bg-red-500 text-white px-2 sm:px-4 py-1.5 sm:py-2 rounded text-sm sm:text-base hover:bg-red-600 transition"
               >
                 Logout
               </button>
@@ -116,40 +120,43 @@ export default function App() {
 
 
   return (
-    <div>
-      <NavbarComponent />
+    <NotificationProvider>
+      <div>
+        <NavbarComponent />
+        <NotificationCenter />
 
-      <main className="max-w-6xl mx-auto p-4">
-        <Routes>
+        <main className="max-w-7xl mx-auto p-3 sm:p-4 lg:p-6">
+          <Routes>
 
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
 
 
-          {/* USER CANNOT ACCESS ADMIN PAGE */}
-          <Route
-            path="/admin"
-            element={
-              user?.role !== "admin"
-                ? <Navigate to="/dashboard" replace />
-                : <RequireAuth><AdminDashboard /></RequireAuth>
-            }
-          />
+            {/* USER CANNOT ACCESS ADMIN PAGE */}
+            <Route
+              path="/admin"
+              element={
+                user?.role !== "admin"
+                  ? <Navigate to="/dashboard" replace />
+                  : <RequireAuth><AdminDashboard /></RequireAuth>
+              }
+            />
 
-          {/* ADMIN CANNOT ACCESS USER DASHBOARD */}
-          <Route 
-            path="/dashboard/*"
-            element={
-              user?.role === "admin"
-                ? <Navigate to="/admin" replace />
-                : <RequireAuth><Dashboard /></RequireAuth>
-            }
-          />
+            {/* ADMIN CANNOT ACCESS USER DASHBOARD */}
+            <Route 
+              path="/dashboard/*"
+              element={
+                user?.role === "admin"
+                  ? <Navigate to="/admin" replace />
+                  : <RequireAuth><Dashboard /></RequireAuth>
+              }
+            />
 
-        </Routes>
-      </main>
-    </div>
+          </Routes>
+        </main>
+      </div>
+    </NotificationProvider>
   );
 }
 
@@ -158,9 +165,17 @@ export default function App() {
 // ====================== PUBLIC HOME PAGE ======================
 function Home() {
   return (
-    <section className="text-center py-16">
-      <h1 className="text-4xl font-bold mb-4">Dental Appointment Booking</h1>
-      <p className="text-gray-600 text-lg">Easy scheduling — full admin control.</p>
+    <section className="text-center py-8 sm:py-12 lg:py-16 px-4">
+      <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-blue-700">🦷 Dental Appointment Booking</h1>
+      <p className="text-gray-600 text-base sm:text-lg lg:text-xl max-w-2xl mx-auto">Easy scheduling — full admin control. Book your dental appointments hassle-free.</p>
+      <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+        <Link to="/register" className="bg-blue-600 text-white px-6 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition shadow-md">
+          Get Started
+        </Link>
+        <Link to="/login" className="bg-gray-200 text-gray-800 px-6 py-3 rounded-lg text-lg font-semibold hover:bg-gray-300 transition shadow-md">
+          Login
+        </Link>
+      </div>
     </section>
   );
 }

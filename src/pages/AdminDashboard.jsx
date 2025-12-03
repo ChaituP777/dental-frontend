@@ -6,18 +6,38 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [appointments, setAppointments] = useState([]);
   const [appointmentFilter, setAppointmentFilter] = useState("all");
+  const [newAppointmentNotifications, setNewAppointmentNotifications] = useState([]);
 
   const user = getUserFromToken();
 
   useEffect(() => {
     loadAdminData();
+    // Refresh new appointments every 5 seconds
+    const interval = setInterval(() => {
+      loadNewAppointmentNotifications();
+    }, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   async function loadAdminData() {
-    const u = await api.get("/admin/users");
-    const a = await api.get("/admin/appointments");
-    setUsers(u.data);
-    setAppointments(a.data);
+    try {
+      const u = await api.get("/admin/users");
+      const a = await api.get("/admin/appointments");
+      setUsers(u.data);
+      setAppointments(a.data);
+      loadNewAppointmentNotifications();
+    } catch (err) {
+      console.error("Error loading data:", err);
+    }
+  }
+
+  async function loadNewAppointmentNotifications() {
+    try {
+      const res = await api.get("/admin/notifications/pending-count");
+      setNewAppointmentNotifications(res.data);
+    } catch (err) {
+      console.error("Error loading pending count:", err);
+    }
   }
 
   if (!user || user.role !== "admin") {
@@ -58,6 +78,19 @@ export default function AdminDashboard() {
       {/* ===================== HEADER ===================== */}
       <h1 className="text-4xl font-bold text-blue-700">Admin Dashboard</h1>
       <p className="text-gray-600">Manage users, appointments & system overview</p>
+
+      {/* ===================== NOTIFICATION ALERT ===================== */}
+      {totalPending > 0 && (
+        <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 text-yellow-800">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">📢</span>
+            <div>
+              <h3 className="font-bold text-lg">New Appointment Requests!</h3>
+              <p>You have <span className="font-bold">{totalPending}</span> pending appointment(s) waiting for your approval.</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ===================== STATS CARDS ===================== */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8">
