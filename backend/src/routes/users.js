@@ -7,8 +7,8 @@ const router = express.Router();
 // GET PROFILE
 router.get("/me", requireAuth, async (req, res) => {
   try {
-    const [rows] = await pool.query(
-      "SELECT id, name, email FROM users WHERE id = ?",
+    const { rows } = await pool.query(
+      "SELECT id, name, email FROM users WHERE id = $1",
       [req.user.id]
     );
 
@@ -24,7 +24,7 @@ router.put("/me", requireAuth, async (req, res) => {
 
   try {
     await pool.query(
-      "UPDATE users SET name = ?, email = ? WHERE id = ?",
+      "UPDATE users SET name = $1, email = $2 WHERE id = $3",
       [name, email, req.user.id]
     );
 

@@ -9,8 +9,8 @@ const router = express.Router();
 // =========================
 router.get("/my", requireAuth, async (req, res) => {
   try {
-    const [rows] = await pool.query(
-      "SELECT id, dentist, reason, datetime, status FROM appointments WHERE user_id = ? ORDER BY datetime ASC",
+    const { rows } = await pool.query(
+      "SELECT id, dentist, reason, datetime, status FROM appointments WHERE user_id = $1 ORDER BY datetime ASC",
       [req.user.id]
     );
     res.json(rows);
@@ -29,19 +29,19 @@ router.post("/", requireAuth, async (req, res) => {
     return res.status(400).json({ message: "Missing fields" });
 
   try {
-    const [result] = await pool.query(
-      "INSERT INTO appointments (user_id, dentist, reason, datetime, status) VALUES (?, ?, ?, ?, 'pending')",
+    const result = await pool.query(
+      "INSERT INTO appointments (user_id, dentist, reason, datetime, status) VALUES ($1, $2, $3, $4, 'pending') RETURNING id",
       [req.user.id, dentist, reason, datetime]
     );
 
-    const appointmentId = result.insertId;
+    const appointmentId = result.rows[0].id;
     const userName = req.user.name;
 
     // Create admin notification about new appointment
     // Admin user is anyone with admin@gmail.com email - we'll notify all admins later
     // For now, store a notification with admin marker
     await pool.query(
-      "INSERT INTO notifications (user_id, appointment_id, type, title, message, is_read) VALUES (?, ?, ?, ?, ?, FALSE)",
+      "INSERT INTO notifications (user_id, appointment_id, type, title, message, is_read) VALUES ($1, $2, $3, $4, $5, FALSE)",
       [
         0, // 0 = admin notification (will be handled separately)
         appointmentId,
@@ -69,8 +69,8 @@ router.put("/:id", requireAuth, async (req, res) => {
 
   try {
     // fetch current appointment and validate
-    const [rows] = await pool.query(
-      "SELECT id, status, user_id FROM appointments WHERE id = ? AND user_id = ?",
+    const { rows } = await pool.query(
+      "SELECT id, status, user_id FROM appointments WHERE id = $1 AND user_id = $2",
       [req.params.id, req.user.id]
     );
 
@@ -87,7 +87,7 @@ router.put("/:id", requireAuth, async (req, res) => {
 
     // allow reschedule from booked or cancelled — mark as pending
     await pool.query(
-      "UPDATE appointments SET dentist=?, reason=?, datetime=?, status='pending' WHERE id=? AND user_id=?",
+      "UPDATE appointments SET dentist=$1, reason=$2, datetime=$3, status='pending' WHERE id=$4 AND user_id=$5",
       [dentist, reason, datetime, req.params.id, req.user.id]
     );
 
@@ -103,7 +103,7 @@ router.put("/:id", requireAuth, async (req, res) => {
 router.delete("/:id", requireAuth, async (req, res) => {
   try {
     await pool.query(
-      "UPDATE appointments SET status='cancelled' WHERE id=? AND user_id=?",
+      "UPDATE appointments SET status='cancelled' WHERE id=$1 AND user_id=$2",
       [req.params.id, req.user.id]
     );
 

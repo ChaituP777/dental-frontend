@@ -12,7 +12,7 @@ router.post("/register", async (req, res) => {
     return res.status(400).json({ message: "Missing fields" });
 
   try {
-    const [rows] = await pool.query("SELECT id FROM users WHERE email = ?", [
+    const { rows } = await pool.query("SELECT id FROM users WHERE email = $1", [
       email,
     ]);
     if (rows.length)
@@ -21,7 +21,7 @@ router.post("/register", async (req, res) => {
     const hashed = await bcrypt.hash(password, 10);
 
     await pool.query(
-      "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
+      "INSERT INTO users (name, email, password) VALUES ($1, $2, $3)",
       [name, email, hashed]
     );
 
@@ -37,8 +37,8 @@ router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const [rows] = await pool.query(
-      "SELECT id, name, email, password FROM users WHERE email = ?",
+    const { rows } = await pool.query(
+      "SELECT id, name, email, password FROM users WHERE email = $1",
       [email]
     );
 

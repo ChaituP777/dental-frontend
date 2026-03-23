@@ -9,8 +9,8 @@ const router = express.Router();
 // ===========================
 router.get("/", requireAuth, async (req, res) => {
   try {
-    const [rows] = await pool.query(
-      "SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC",
+    const { rows } = await pool.query(
+      "SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC",
       [req.user.id]
     );
     res.json(rows);
@@ -25,8 +25,8 @@ router.get("/", requireAuth, async (req, res) => {
 // ===========================
 router.get("/unread/count", requireAuth, async (req, res) => {
   try {
-    const [rows] = await pool.query(
-      "SELECT COUNT(*) as count FROM notifications WHERE user_id = ? AND is_read = FALSE",
+    const { rows } = await pool.query(
+      "SELECT COUNT(*) as count FROM notifications WHERE user_id = $1 AND is_read = FALSE",
       [req.user.id]
     );
     res.json({ unreadCount: rows[0].count });
@@ -41,12 +41,12 @@ router.get("/unread/count", requireAuth, async (req, res) => {
 // ===========================
 router.put("/:id/read", requireAuth, async (req, res) => {
   try {
-    const [result] = await pool.query(
-      "UPDATE notifications SET is_read = TRUE WHERE id = ? AND user_id = ?",
+    const result = await pool.query(
+      "UPDATE notifications SET is_read = TRUE WHERE id = $1 AND user_id = $2",
       [req.params.id, req.user.id]
     );
 
-    if (result.affectedRows === 0) {
+    if (result.rowCount === 0) {
       return res.status(404).json({ message: "Notification not found" });
     }
 
@@ -63,7 +63,7 @@ router.put("/:id/read", requireAuth, async (req, res) => {
 router.put("/read/all", requireAuth, async (req, res) => {
   try {
     await pool.query(
-      "UPDATE notifications SET is_read = TRUE WHERE user_id = ? AND is_read = FALSE",
+      "UPDATE notifications SET is_read = TRUE WHERE user_id = $1 AND is_read = FALSE",
       [req.user.id]
     );
     res.json({ message: "All notifications marked as read" });
@@ -78,12 +78,12 @@ router.put("/read/all", requireAuth, async (req, res) => {
 // ===========================
 router.delete("/:id", requireAuth, async (req, res) => {
   try {
-    const [result] = await pool.query(
-      "DELETE FROM notifications WHERE id = ? AND user_id = ?",
+    const result = await pool.query(
+      "DELETE FROM notifications WHERE id = $1 AND user_id = $2",
       [req.params.id, req.user.id]
     );
 
-    if (result.affectedRows === 0) {
+    if (result.rowCount === 0) {
       return res.status(404).json({ message: "Notification not found" });
     }
 
